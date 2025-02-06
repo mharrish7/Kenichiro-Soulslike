@@ -102,11 +102,6 @@ export default class Hero extends Phaser.Physics.Arcade.Sprite {
                 this.anims.play('idle', true);
             }
         }
-
-
-        
-        
-
     }
 
     deflect(enemy: Enemy) {
@@ -123,7 +118,6 @@ export default class Hero extends Phaser.Physics.Arcade.Sprite {
     }
 
     takeDamage(damage: number) {
-        this.hithero_sound.play();
         this.healthBar.decrease(damage);
     }
 
@@ -201,9 +195,6 @@ export default class Hero extends Phaser.Physics.Arcade.Sprite {
     preUpdate(time: number, delta: number) {
 
         this.healthBar.changePos(this.x - 40, this.y - 10);
-        if (this.healthBar.getHealth() < 50) {
-            this.emitter.visible = true;
-        }
 
         super.preUpdate(time, delta);
         this.healthBar.changePos(this.x - 40, this.y - 10);

@@ -3,11 +3,11 @@
 
 import Phaser from 'phaser';
 import Hero from '../characters/hero';
-import Enemy from '../characters/enemy';
+import Knight from '../characters/knight';
 
-export default class Scene1 extends Phaser.Scene {
+export default class Scene2 extends Phaser.Scene {
     private player: Hero;
-    private enemy: Enemy;
+    private enemy: Knight;
     private cursors: Phaser.Input.Keyboard.CursorKeys;
     private space: Phaser.Input.Keyboard.Key;
     private zKey: Phaser.Input.Keyboard.Key;
@@ -16,10 +16,12 @@ export default class Scene1 extends Phaser.Scene {
     private platforms: Phaser.Physics.Arcade.StaticGroup;
     private hit_sound: Phaser.Sound.BaseSound;
     private gameOverText: Phaser.GameObjects.Text;
-    private background: Phaser.GameObjects.TileSprite;
+    private playerDirection:Number;
+    private playerPos: Number;
+    private punch : Phaser.Sound.BaseSound;
 
     constructor() {
-        super('scene-1');
+        super('scene-2');
     }
 
     preload() {
@@ -30,12 +32,18 @@ export default class Scene1 extends Phaser.Scene {
         this.load.spritesheet('attack1', 'assets/attack/attack1.png', { frameWidth: 600, frameHeight: 600 });
         this.load.spritesheet('attack2', 'assets/attack/attack2.png', { frameWidth: 600, frameHeight: 600 });
         this.load.spritesheet('roll', 'assets/roll/spritesheet.png', { frameWidth: 600, frameHeight: 600 });
+        this.load.spritesheet('knight_attack1', 'assets/Knight/_Attack.png', { frameWidth: 600, frameHeight: 600 });
+        this.load.spritesheet('knight_attack2', 'assets/Knight/_Attack2.png', { frameWidth: 600, frameHeight: 600 });
+        this.load.spritesheet('knight_idle', 'assets/Knight/_Idle.png', { frameWidth: 600, frameHeight: 600 });
+        this.load.spritesheet('knight_run', 'assets/Knight/_Run.png', { frameWidth: 600, frameHeight: 600 });
         this.load.audio('deflect', ['assets/music/deflect.mp3']);
         this.load.audio('hithero', ['assets/music/hithero.mp3']);
         this.load.audio('hit1', ['assets/music/hit1.mp3']);
+        this.load.audio('punch', ['assets/music/punch.mp3']);
+        this.load.audio('teleport', ['assets/music/teleport.mp3']);
         this.load.image('ground', ['assets/platform/platform.png']);
         this.load.image('red', 'assets/particles/red.png');
-        this.load.image('background', 'assets/background.jpg');
+        
     }
 
     create() {
@@ -49,11 +57,10 @@ export default class Scene1 extends Phaser.Scene {
         const worldHeight = gameHeight; // Keep the height the same (or adjust as needed)
 
         this.physics.world.setBounds(0, 0, worldWidth, worldHeight); // Set the WORLD bounds
-        this.cameras.main.setBounds(0, 0, worldWidth, worldHeight); // Se
+        this.cameras.main.setBounds(0, 0, worldWidth, worldHeight); 
 
         this.platforms = this.physics.add.staticGroup();
-        // this.background = this.add.tileSprite(0, 0, worldWidth, worldHeight, 'background').setOrigin(0);
-        // this.background.setDepth(-1);
+        this.punch = this.sound.add("punch");
         const tileWidth = 100; // Your tile width
         const numTiles = Math.ceil(worldWidth / tileWidth); // Calculate how many tiles we need (rounding up)
 
@@ -68,6 +75,7 @@ export default class Scene1 extends Phaser.Scene {
         }
 
 
+        this.teleport = this.sound.add("teleport");
 
         // Adjust the last tile's width if necessary
         const lastTile = this.platforms.getChildren()[this.platforms.getChildren().length - 1];
@@ -91,7 +99,7 @@ export default class Scene1 extends Phaser.Scene {
 
         for (let i = 0; i < 1; i++) { 
             const x = Phaser.Math.Between(600, 900); 
-            const enemy = new Enemy(this, x, gameHeight-300, 'samurai').setScale(0.75);
+            const enemy = new Knight(this, x, gameHeight-200, 'knight_idle').setScale(0.5);
             this.enemies.add(enemy);
         }
         
@@ -112,16 +120,29 @@ export default class Scene1 extends Phaser.Scene {
 
     handleEnemyOverlap(enemy: Enemy, player: Hero) {
         if (enemy && enemy.getHealthBar) { // Check if enemy exists AND has getHealthBar
-            
-            if (player.anims.currentAnim.key === 'deflect' && player.anims.currentFrame.index < 20 &&
-                (enemy.anims.currentAnim.key === "attackboss" || enemy.anims.currentAnim.key === "attack1") && enemy.anims.currentFrame.index === 14) {
-                player.deflect(enemy);
-                enemy.deflect();
+            if ((player.anims.currentAnim.key === 'deflect' && player.anims.currentFrame.index < 20) &&
+                ((enemy.anims.currentAnim.key === "knight_attackboss" && enemy.anims.currentFrame.index === 20) || (enemy.anims.currentAnim.key === "knight_attack1" && enemy.anims.currentFrame.index === 29))) {
+                if (player.flipX == enemy.flipX){
+                    player.deflect(enemy);
+                    enemy.deflect();
+                } else {
+                    if (this.isPlayerInSameSide(enemy, player) && !this.player.hit) {
+                        player.takeDamage(15);
+                        if(enemy.anims.currentAnim.key === "knight_attack1" ){
+                            player.takeDamage(15);
+                        }
+                        this.punch.play();
+                    }
+                }
+                
             } 
-            else if (enemy.anims.currentAnim.key === "attackboss" || enemy.anims.currentAnim.key === "attack1") {
-                if (enemy.anims.currentFrame.index === 14 && this.isPlayerInSameSide(enemy, player) && !this.player.hit) {
-                    player.takeDamage(25);
-                    this.hit_sound.play();
+            else if ((enemy.anims.currentAnim.key === "knight_attackboss" && enemy.anims.currentFrame.index === 20) || (enemy.anims.currentAnim.key === "knight_attack1" && enemy.anims.currentFrame.index === 32)){
+                if (this.isPlayerInSameSide(enemy, player) && !this.player.hit) {
+                    player.takeDamage(15);
+                    if(enemy.anims.currentAnim.key === "knight_attack1" ){
+                        player.takeDamage(15);
+                    }
+                    this.punch.play();
                 }
             }
             
@@ -133,7 +154,7 @@ export default class Scene1 extends Phaser.Scene {
         if (enemy && enemy.getHealthBar) { // Check if enemy exists AND has getHealthBar
             if ((player.anims.currentAnim.key === "attack1" || player.anims.currentAnim.key === "attack2") && player.anims.currentFrame.index === (player.anims.currentAnim.key === "attack1" ? 14 : 19)) {
                 if (!this.heroHasHit) {
-                    enemy.takeDamage(20);
+                    enemy.takeDamage(5);
                     this.hit_sound.play();
                     this.heroHasHit = true;
                 }
@@ -144,7 +165,7 @@ export default class Scene1 extends Phaser.Scene {
     }
 
     isPlayerInSameSide(enemy: Enemy, player: Hero) {
-        return (!enemy.flipX && player.x > enemy.x) || (enemy.flipX && player.x < enemy.x);
+        return (enemy.flipX && player.x > enemy.x) || (!enemy.flipX && player.x < enemy.x);
     }
 
     update() {
@@ -153,20 +174,55 @@ export default class Scene1 extends Phaser.Scene {
         this.player.handleInput(this.cursors, this.space, this.zKey, this.xKey, this.cKey);
 
         this.enemies.getChildren().forEach((enemy: Enemy) => {
+            if (enemy.anims.currentAnim.key === "knight_attack1" && enemy.anims.currentFrame.index === 10){
+                this.playerDirection = this.player.flipX ? -1 : 1;
+                this.playerPos = this.player.x;
+            }
+            if (enemy.anims.currentAnim.key === "knight_attack1" && enemy.anims.currentFrame.index === 27) {
+                // Frame 27 of knight_attackboss reached!
+                this.teleport.play();
+                // 1. Teleport enemy behind player
+                const teleportDistance = 100; // Adjust as needed
+                const newX = this.playerPos - this.playerDirection * teleportDistance;
+                const newY = this.player.y;
+                const worldBounds = this.physics.world.bounds;
+                if (newX >= worldBounds.left && newX <= worldBounds.right) {
+                    enemy.setPosition(newX, newY);
+                    enemy.setVelocityX(0); // Stop any existing velocity
+                } else {
+                    if (newX < worldBounds.left) {
+                        enemy.setPosition(worldBounds.left + teleportDistance/2, newY);
+                    } else {
+                        enemy.setPosition(worldBounds.right - teleportDistance/2, newY);
+                    }
+                }
+
+            }
+        
+
+
+
             if (enemy && enemy.getHealthBar) { // <--- Crucial check here!
                 enemy.startAttack();
-
+                
                 const dx = this.player.x - enemy.x;
                 const direction = Math.sign(dx);
-                enemy.setFlipX(direction < 0);
-                const enemySpeed = enemy.getHealthBar().getHealth() < 50 ? 300 : 200;
-                if (Math.abs(dx) > 100 && !enemy.isAnime) {
+                if (!enemy.isAnime){
+                    enemy.setFlipX(direction > 0); // animation is opposite for this character
+                }
+                const enemySpeed = enemy.getHealthBar().getHealth() < 50 ? 100 : 50;
+                const telport = enemy.getHealthBar().getHealth() < 50 ? true : false;
+                if (telport && Math.abs(dx) > 100 && !enemy.isAnime){
+                    enemy.setVelocityX(0);
+                    enemy.anims.play('knight_attack1', true);
+                }
+                else if (Math.abs(dx) > 100 && !enemy.isAnime) {
                     enemy.setVelocityX(direction * enemySpeed);
-                    enemy.anims.play('walk', true);
+                    enemy.anims.play('knight_walk', true);
                 } else {
                     enemy.setVelocityX(0);
                     if (!enemy.isAnime) {
-                        enemy.anims.play('idle', true);
+                        enemy.anims.play('knight_idle', true);
                     }
                 }
 
@@ -175,27 +231,20 @@ export default class Scene1 extends Phaser.Scene {
                 }
             }
 
-            if (enemy.getHealthBar().getHealth() <= 0 || !enemy || !enemy.getHealthBar()) {
+            if (!enemy || !enemy.getHealthBar() || enemy.getHealthBar().getHealth() <= 0) {
                 if (!this.fadeOut) { // Start fade out only once
                     this.fadeOut = true;
                     const fadeDuration = 1000; 
                     this.cameras.main.fadeOut(fadeDuration, 0, 0, 0); // Black fade
     
                     this.time.delayedCall(fadeDuration, () => {
-                        this.scene.start('story-scene', { 
-                            story: `Here you see General Ishiro, once a powerful commander, 
-                            now a shadow of his former self.  Weakened by age and illness, his sword, 
-                            which saw so many battles, is broken. He can no longer fight in the wars,
-                             and now lives a lonely life.  Please, help him find peace from his suffering.
-                             Click to continue`, // Your tutorial story text
-                            nextScene: 'scene-2' // The scene to go to after the story
-                        }); // Switch to Scene2// Switch to Scene2
+                        this.scene.start('loading-scene'); // Switch to Scene2
                     });
                 }
             }
         });
 
-        if (this.player.getHealthBar().getHealth() <= 0 || !this.player || !this.player.getHealthBar()) {
+        if ( !this.player || !this.player.getHealthBar() || this.player.getHealthBar().getHealth() <= 0) {
             if (!this.fadeOut) { // Start fade out only once
                 this.fadeOut = true;
                 const fadeDuration = 1000; 
@@ -216,14 +265,7 @@ export default class Scene1 extends Phaser.Scene {
                 this.cameras.main.fadeOut(fadeDuration, 0, 0, 0); // Black fade
 
                 this.time.delayedCall(fadeDuration, () => {
-                    this.scene.start('story-scene', { 
-                        story: `Here you see General Ishiro, once a powerful commander, 
-                        now a shadow of his former self.  Weakened by age and illness, his sword, 
-                        which saw so many battles, is broken. He can no longer fight in the wars,
-                         and now lives a lonely life.  Please, help him find peace from his suffering.
-                         Click to continue`, // Your tutorial story text
-                        nextScene: 'scene-2' // The scene to go to after the story
-                    }); // Switch to Scene2
+                    this.scene.start('loading-scene'); // Switch to Scene2
                 });
             }
         }
