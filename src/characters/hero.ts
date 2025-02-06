@@ -12,6 +12,7 @@ export default class Hero extends Phaser.Physics.Arcade.Sprite {
     private deflect_sound: Phaser.Sound.BaseSound;
     private hit_sound: Phaser.Sound.BaseSound;
     private hithero_sound: Phaser.Sound.BaseSound;
+    private isJump:boolean = false;
 
 
     constructor(scene: Phaser.Scene, x: number, y: number, texture: string) {
@@ -35,6 +36,8 @@ export default class Hero extends Phaser.Physics.Arcade.Sprite {
 
         this.on('animationcomplete', () => {
             this.isAnime = false;
+            this.isJump = false;
+
         });
     }
 
@@ -45,7 +48,11 @@ export default class Hero extends Phaser.Physics.Arcade.Sprite {
     handleInput(cursors: Phaser.Input.Keyboard.CursorKeys, spaceKey: Phaser.Input.Keyboard.Key, zKey: Phaser.Input.Keyboard.Key, xKey: Phaser.Input.Keyboard.Key, cKey: Phaser.Input.Keyboard.Key) {
         if (spaceKey.isDown && this.body.onFloor()) {
             this.setVelocityY(-800);
+            this.anims.play('roll', true);
+            this.isAnime = true;
+            this.isJump = true;
         }
+
 
         if (cKey.isDown && this.body.onFloor() && !this.hit && !this.isAnime) {
             const direction = this.flipX ? -1 : 1;
@@ -72,7 +79,6 @@ export default class Hero extends Phaser.Physics.Arcade.Sprite {
             this.anims.play('deflect', false);
             this.isAnime = true;
         }
-
         if (cursors.left.isDown && !this.isAnime) {
             this.setVelocityX(-300);
             this.anims.play('walk', true);
@@ -82,11 +88,25 @@ export default class Hero extends Phaser.Physics.Arcade.Sprite {
             this.anims.play('walk', true);
             this.setFlipX(false);
         } else {
-            if (!this.hit) this.setVelocityX(0);
+            if (this.isJump){
+                if (cursors.left.isDown) {
+                    this.setVelocityX(-300);
+                    this.setFlipX(true);
+                } else if (cursors.right.isDown) {
+                    this.setVelocityX(300);
+                    this.setFlipX(false);
+                }
+            } else if (!this.hit) this.setVelocityX(0);
+            
             if (!this.isAnime) {
                 this.anims.play('idle', true);
             }
         }
+
+
+        
+        
+
     }
 
     deflect(enemy: Enemy) {

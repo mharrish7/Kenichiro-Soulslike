@@ -1,7 +1,8 @@
 // @ts-nocheck
 import Phaser from 'phaser'
 
-import Scene1 from './Scene1'
+import Scene1 from './scenes/Scene1'
+import LoadingScene from './scenes/LoadingScreen'
 
 const config: Phaser.Types.Core.GameConfig = {
 	type: Phaser.AUTO,
@@ -23,7 +24,7 @@ const config: Phaser.Types.Core.GameConfig = {
 			debug: true,
 		},
 	},
-	scene: [Scene1],
+	scene: [LoadingScene, Scene1],
 }
 
 export default new Phaser.Game(config)

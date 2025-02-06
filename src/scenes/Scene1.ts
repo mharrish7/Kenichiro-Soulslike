@@ -2,8 +2,8 @@
 
 
 import Phaser from 'phaser';
-import Hero from './characters/hero';
-import Enemy from './characters/enemy';
+import Hero from '../characters/hero';
+import Enemy from '../characters/enemy';
 
 export default class HelloWorldScene extends Phaser.Scene {
     private player: Hero;
@@ -37,16 +37,53 @@ export default class HelloWorldScene extends Phaser.Scene {
     }
 
     create() {
+
+
+    
         const gameWidth = this.game.config.width as number;
         const gameHeight = this.game.config.height as number;
 
+        const worldWidth = gameWidth * 3;   // Example: 3 times the game width
+        const worldHeight = gameHeight; // Keep the height the same (or adjust as needed)
+
+        this.physics.world.setBounds(0, 0, worldWidth, worldHeight); // Set the WORLD bounds
+        this.cameras.main.setBounds(0, 0, worldWidth, worldHeight); // Se
+
         this.platforms = this.physics.add.staticGroup();
 
-        const ground = this.platforms.create(gameWidth / 2, gameHeight, 'ground') 
-            .setScale(gameWidth / 100 , 1) 
-            .refreshBody();
+        const tileWidth = 100; // Your tile width
+        const numTiles = Math.ceil(worldWidth / tileWidth); // Calculate how many tiles we need (rounding up)
+
+        let currentX = 0; // Keep track of the current x position
+
+        for (let i = 0; i < numTiles; i++) {
+            const groundTile = this.platforms.create(currentX + tileWidth / 2, gameHeight, 'ground'); // Center the tile
+            groundTile.setScale(1, 1); // Important to reset any scaling that might have been applied
+            groundTile.refreshBody();
+
+            currentX += tileWidth; // Increment x for the next tile
+        }
+
+
+
+        // Adjust the last tile's width if necessary
+        const lastTile = this.platforms.getChildren()[this.platforms.getChildren().length - 1];
+        if (lastTile) {
+        const remainingWidth = gameWidth - (numTiles - 1) * tileWidth;
+        lastTile.setScale(remainingWidth/tileWidth, 1); // Set the scale based on the remaining width
+        lastTile.refreshBody();
+        }
+
+        // this.platforms.create(300, gameHeight - 150, 'ground').setScale(0.5).refreshBody(); // Smaller platform
+        // this.platforms.create(600, gameHeight - 400, 'ground').setScale(0.8).refreshBody(); // Another platform
+        // this.platforms.create(900, gameHeight - 200, 'ground').setScale(0.3).refreshBody(); // Another platform
+
 
         this.player = new Hero(this, 250, 200, 'samurai').setScale(0.5);
+        this.cameras.main.setBounds(0, 0, worldWidth, gameHeight);
+        this.cameras.main.setZoom(1.5);
+        this.cameras.main.startFollow(this.player, false, true, true); // THEN set the camera to follow
+        
         this.enemies = this.add.group(); 
 
         for (let i = 0; i < 1; i++) { 
@@ -109,6 +146,8 @@ export default class HelloWorldScene extends Phaser.Scene {
     }
 
     update() {
+
+
         this.player.handleInput(this.cursors, this.space, this.zKey, this.xKey, this.cKey);
 
         this.enemies.getChildren().forEach((enemy: Enemy) => {
