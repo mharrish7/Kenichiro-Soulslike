@@ -23,7 +23,7 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
         this.body.setSize(150, 300);
         this.body.setOffset(200, 300);
 
-        this.healthBar = new HealthBar(scene, 600, 10); // Adjust position as needed
+        this.healthBar = new HealthBar(scene, 600, 10); 
 
         this.hit_sound = scene.sound.add("hit1");
 
@@ -120,10 +120,9 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
             repeat: 0
         });
 
-        // Add listener for animation start:
         this.on('animationstart', (animation: Phaser.Animations.Animation, frame: Phaser.Animations.AnimationFrame) => {
             if (animation.key === 'attack1' || animation.key === 'attackboss') {
-                this.body.setSize(300, 300); // Widen the body. Adjust 250 as needed.
+                this.body.setSize(300, 300); 
                 if(this.flipX){
                     this.body.setOffset(50,300)
                 }
@@ -133,10 +132,9 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
             }
         });
 
-        // Add listener for animation complete:
         this.on('animationcomplete', (animation: Phaser.Animations.Animation, frame: Phaser.Animations.AnimationFrame) => {
             if (animation.key === 'attack1' || animation.key === 'attackboss') {
-                this.body.setSize(150, 300); // Reset to the original size.
+                this.body.setSize(150, 300); 
                 this.body.setOffset(250,300)
             }
         });

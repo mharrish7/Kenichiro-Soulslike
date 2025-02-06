@@ -45,18 +45,16 @@ export default class HelloWorldScene extends Phaser.Scene {
 
         this.platforms = this.physics.add.staticGroup();
 
-        // Create a single platform that spans the entire width
-        const ground = this.platforms.create(gameWidth / 2, gameHeight, 'ground') // Position in the center, near bottom. Adjust -50 as needed.
-            .setScale(gameWidth / 100 , 1) // Scale it. Adjust 200 as needed.
-            .refreshBody(); // Important: Refresh the physics body after scaling.
+        const ground = this.platforms.create(gameWidth / 2, gameHeight, 'ground') 
+            .setScale(gameWidth / 100 , 1) 
+            .refreshBody();
 
         this.player = new Hero(this, 250, 200, 'samurai').setScale(0.5);
-        this.enemies = this.add.group(); // Initialize the group
+        this.enemies = this.add.group(); 
 
-        // Create multiple enemies (adjust the number and positions as needed)
-        for (let i = 0; i < 1; i++) { // Example: 3 enemies
-            const x = Phaser.Math.Between(600, 900); // Random x position
-            const y = Phaser.Math.Between(200, 400); // Random y position
+        for (let i = 0; i < 1; i++) { 
+            const x = Phaser.Math.Between(600, 900); 
+            const y = Phaser.Math.Between(200, 400); 
             const enemy = new Enemy(this, x, y, 'samurai').setScale(0.5);
             this.enemies.add(enemy);
         }
