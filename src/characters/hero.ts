@@ -93,8 +93,13 @@ export default class Hero extends Phaser.Physics.Arcade.Sprite {
         this.deflect_sound.play();
         this.hit = true;
         const direction = this.flipX ? -1 : 1;
-        this.setVelocityX(direction * -400);
+        if(this.flipX == false){
+            this.setVelocityX(-400);	
+        } else {
+            this.setVelocityX(400);	
+        }
         setTimeout(() => { this.hit = false }, 500);
+        
     }
 
     takeDamage(damage: number) {

@@ -16,9 +16,6 @@ export default class HelloWorldScene extends Phaser.Scene {
     private platforms: Phaser.Physics.Arcade.StaticGroup;
     private hit_sound: Phaser.Sound.BaseSound;
     private gameOverText: Phaser.GameObjects.Text;
-    private enemyHasHit: boolean = false;
-    private heroHit: boolean = false;
-    private deflected: boolean = false;
 
     constructor() {
         super('hello-world');
@@ -76,24 +73,19 @@ export default class HelloWorldScene extends Phaser.Scene {
 
     handleEnemyOverlap(enemy: Enemy, player: Hero) {
         if (enemy && enemy.getHealthBar) { // Check if enemy exists AND has getHealthBar
-            if (enemy.anims.currentAnim.key === "attackboss" || enemy.anims.currentAnim.key === "attack1") {
-                if (enemy.anims.currentFrame.index === 14 && this.isPlayerInSameSide(enemy, player) && !this.enemyHasHit) {
-                    player.takeDamage(25);
-                    this.hit_sound.play();
-                    this.enemyHasHit = true;
-                } else if (enemy.anims.currentFrame.index !== 14) {
-                    this.enemyHasHit = false;
-                }
-            }
-
+            
             if (player.anims.currentAnim.key === 'deflect' && player.anims.currentFrame.index < 20 &&
                 (enemy.anims.currentAnim.key === "attackboss" || enemy.anims.currentAnim.key === "attack1") && enemy.anims.currentFrame.index === 14) {
                 player.deflect(enemy);
                 enemy.deflect();
-                this.deflected = true;
-            } else {
-                this.deflected = false;
+            } 
+            else if (enemy.anims.currentAnim.key === "attackboss" || enemy.anims.currentAnim.key === "attack1") {
+                if (enemy.anims.currentFrame.index === 14 && this.isPlayerInSameSide(enemy, player) && !this.player.hit) {
+                    player.takeDamage(25);
+                    this.hit_sound.play();
+                }
             }
+            
         }
     }
 
