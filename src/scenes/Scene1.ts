@@ -41,7 +41,7 @@ export default class Scene1 extends Phaser.Scene {
     create() {
 
 
-    
+        this.fadeOut = false;
         const gameWidth = this.game.config.width as number;
         const gameHeight = this.game.config.height as number;
 
@@ -149,7 +149,6 @@ export default class Scene1 extends Phaser.Scene {
 
     update() {
 
-
         this.player.handleInput(this.cursors, this.space, this.zKey, this.xKey, this.cKey);
 
         this.enemies.getChildren().forEach((enemy: Enemy) => {
@@ -173,26 +172,10 @@ export default class Scene1 extends Phaser.Scene {
                 if (enemy.getHealthBar().getHealth() <= 0) {
                     enemy.destroy();
                 }
+            } else {
+                enemy.destroy();
             }
 
-            if (enemy.getHealthBar().getHealth() <= 0 || !enemy || !enemy.getHealthBar()) {
-                if (!this.fadeOut) { // Start fade out only once
-                    this.fadeOut = true;
-                    const fadeDuration = 1000; 
-                    this.cameras.main.fadeOut(fadeDuration, 0, 0, 0); // Black fade
-    
-                    this.time.delayedCall(fadeDuration, () => {
-                        this.scene.start('story-scene', { 
-                            story: `Here you see General Ishiro, once a powerful commander, 
-                            now a shadow of his former self.  Weakened by age and illness, his sword, 
-                            which saw so many battles, is broken. He can no longer fight in the wars,
-                             and now lives a lonely life.  Please, help him find peace from his suffering.
-                             Click to continue`, // Your tutorial story text
-                            nextScene: 'scene-2' // The scene to go to after the story
-                        }); // Switch to Scene2// Switch to Scene2
-                    });
-                }
-            }
         });
 
         if (this.player.getHealthBar().getHealth() <= 0 || !this.player || !this.player.getHealthBar()) {
@@ -214,8 +197,7 @@ export default class Scene1 extends Phaser.Scene {
                 this.fadeOut = true;
                 const fadeDuration = 1000; 
                 this.cameras.main.fadeOut(fadeDuration, 0, 0, 0); // Black fade
-
-                this.time.delayedCall(fadeDuration, () => {
+                this.time.delayedCall(1000, () => {
                     this.scene.start('story-scene', { 
                         story: `Here you see General Ishiro, once a powerful commander, 
                         now a shadow of his former self.  Weakened by age and illness, his sword, 
@@ -226,6 +208,7 @@ export default class Scene1 extends Phaser.Scene {
                     }); // Switch to Scene2
                 });
             }
+            
         }
     }
 }

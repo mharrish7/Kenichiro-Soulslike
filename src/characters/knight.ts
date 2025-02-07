@@ -118,7 +118,7 @@ export default class Knight extends Phaser.Physics.Arcade.Sprite {
         this.scene.anims.create({
             key: 'knight_attack1',
             frames: this.scene.anims.generateFrameNumbers('knight_attack2', { start: 0, end: 60 }),
-            frameRate: 30,
+            frameRate: 60,
             repeat: 0
         });
 

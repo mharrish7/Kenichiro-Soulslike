@@ -19,6 +19,7 @@ export default class Scene2 extends Phaser.Scene {
     private playerDirection:Number;
     private playerPos: Number;
     private punch : Phaser.Sound.BaseSound;
+    private teleport_cooldown : boolean;
 
     constructor() {
         super('scene-2');
@@ -48,6 +49,7 @@ export default class Scene2 extends Phaser.Scene {
 
     create() {
 
+        this.fadeOut = false;
 
     
         const gameWidth = this.game.config.width as number;
@@ -170,20 +172,18 @@ export default class Scene2 extends Phaser.Scene {
 
     update() {
 
-
         this.player.handleInput(this.cursors, this.space, this.zKey, this.xKey, this.cKey);
-
         this.enemies.getChildren().forEach((enemy: Enemy) => {
             if (enemy.anims.currentAnim.key === "knight_attack1" && enemy.anims.currentFrame.index === 10){
                 this.playerDirection = this.player.flipX ? -1 : 1;
-                this.playerPos = this.player.x;
             }
             if (enemy.anims.currentAnim.key === "knight_attack1" && enemy.anims.currentFrame.index === 27) {
                 // Frame 27 of knight_attackboss reached!
                 this.teleport.play();
                 // 1. Teleport enemy behind player
+                
                 const teleportDistance = 100; // Adjust as needed
-                const newX = this.playerPos - this.playerDirection * teleportDistance;
+                const newX = this.player.x - this.playerDirection * teleportDistance;
                 const newY = this.player.y;
                 const worldBounds = this.physics.world.bounds;
                 if (newX >= worldBounds.left && newX <= worldBounds.right) {
@@ -207,14 +207,19 @@ export default class Scene2 extends Phaser.Scene {
                 
                 const dx = this.player.x - enemy.x;
                 const direction = Math.sign(dx);
-                if (!enemy.isAnime){
+                if (!enemy.isAnime || enemy.anims.currentAnim.key == "knight_attack1"){
                     enemy.setFlipX(direction > 0); // animation is opposite for this character
                 }
                 const enemySpeed = enemy.getHealthBar().getHealth() < 50 ? 100 : 50;
                 const telport = enemy.getHealthBar().getHealth() < 50 ? true : false;
-                if (telport && Math.abs(dx) > 100 && !enemy.isAnime){
+                if (telport && Math.abs(dx) > 100 && !enemy.isAnime && !this.teleport_cooldown){
+                    this.teleport_cooldown = true;
+                    setTimeout(function() {
+                        this.teleport_cooldown = false;
+                    }.bind(this), 2000);
                     enemy.setVelocityX(0);
                     enemy.anims.play('knight_attack1', true);
+                    enemy.isAnime = true;
                 }
                 else if (Math.abs(dx) > 100 && !enemy.isAnime) {
                     enemy.setVelocityX(direction * enemySpeed);
@@ -229,18 +234,8 @@ export default class Scene2 extends Phaser.Scene {
                 if (enemy.getHealthBar().getHealth() <= 0) {
                     enemy.destroy();
                 }
-            }
-
-            if (!enemy || !enemy.getHealthBar() || enemy.getHealthBar().getHealth() <= 0) {
-                if (!this.fadeOut) { // Start fade out only once
-                    this.fadeOut = true;
-                    const fadeDuration = 1000; 
-                    this.cameras.main.fadeOut(fadeDuration, 0, 0, 0); // Black fade
-    
-                    this.time.delayedCall(fadeDuration, () => {
-                        this.scene.start('loading-scene'); // Switch to Scene2
-                    });
-                }
+            } else {
+                enemy.destroy();
             }
         });
 
@@ -257,7 +252,7 @@ export default class Scene2 extends Phaser.Scene {
                 });
             }
         }
-
+        
         if (this.enemies.getLength() <= 0 || !this.enemies) {
             if (!this.fadeOut) { // Start fade out only once
                 this.fadeOut = true;
